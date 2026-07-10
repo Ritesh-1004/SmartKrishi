@@ -174,7 +174,8 @@ The AI agent automatically provides:
 
 ---
 
- Free to use, modify, and deploy. Built with ❤️ for Indian farmers.
+## 📄 License
+MIT License- Free to use, modify, and deploy. Built with ❤️ for Indian farmers.
 
 ---
 
