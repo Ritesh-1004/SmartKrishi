@@ -1,0 +1,52 @@
+<!-- Shared sidebar partial for all dashboard pages -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="farmer-profile-mini">
+            <div class="farmer-avatar-lg">{{ current_user.full_name[0].upper() }}</div>
+            <div class="overflow-hidden">
+                <div class="fw-semibold text-truncate">{{ current_user.full_name }}</div>
+                <small class="text-muted">{{ current_user.state or 'India' }}</small>
+            </div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column gap-1">
+            <li><a href="{{ url_for('dashboard.home') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.home' }}">
+                <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+            </a></li>
+            <li><a href="{{ url_for('dashboard.chat') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.chat' }}">
+                <i class="bi bi-chat-dots"></i><span>KrishiMitra AI</span>
+                <span class="badge bg-success ms-auto small">AI</span>
+            </a></li>
+            <li><a href="{{ url_for('dashboard.weather') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.weather' }}">
+                <i class="bi bi-cloud-sun"></i><span>Weather</span>
+            </a></li>
+            <li><a href="{{ url_for('dashboard.mandi') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.mandi' }}">
+                <i class="bi bi-graph-up"></i><span>Mandi Prices</span>
+            </a></li>
+            <li><a href="{{ url_for('dashboard.soil') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.soil' }}">
+                <i class="bi bi-layers"></i><span>Soil Analysis</span>
+            </a></li>
+            <li><a href="{{ url_for('dashboard.schemes') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.schemes' }}">
+                <i class="bi bi-award"></i><span>Govt Schemes</span>
+            </a></li>
+            <li class="mt-2 pt-2 border-top">
+                <a href="{{ url_for('dashboard.profile') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.profile' }}">
+                    <i class="bi bi-person-gear"></i><span>My Profile</span>
+                </a>
+            </li>
+            <li><a href="{{ url_for('auth.logout') }}" class="nav-link sidebar-link text-danger">
+                <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+            </a></li>
+        </ul>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="helpline-mini">
+            <i class="bi bi-telephone-fill text-success"></i>
+            <div>
+                <small class="d-block text-muted">Kisan Helpline</small>
+                <a href="tel:1800-180-1551" class="text-success fw-semibold text-decoration-none small">1800-180-1551</a>
+            </div>
+        </div>
+    </div>
+</aside>

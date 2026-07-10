@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}SmartKrishi - AI Farming Advisor for Indian Farmers{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<!-- ── HERO SECTION ─────────────────────────────────────────────────────── -->
+<section class="hero-section">
+    <div class="hero-bg-pattern"></div>
+    <div class="container">
+        <div class="row min-vh-100 align-items-center py-5 pt-lg-0">
+            <div class="col-lg-6 hero-text" data-aos="fade-right">
+                <div class="hero-badge mb-3">
+                    <i class="bi bi-robot me-2 text-success"></i>
+                    <span>Powered by IBM Granite AI</span>
+                </div>
+                <h1 class="hero-title">
+                    Smart Farming<br>
+                    <span class="hero-highlight">in Your Language</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Get instant AI advice on crops, pests, soil, weather, and government schemes — 
+                    in Hindi, Tamil, Telugu, Kannada, and 8 more Indian languages.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a href="{{ url_for('auth.demo_login') }}" class="btn btn-success btn-hero">
+                        <i class="bi bi-play-circle me-2"></i>Try Free Demo
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success btn-hero">
+                        <i class="bi bi-person-plus me-2"></i>Register Free
+                    </a>
+                </div>
+                <!-- Trust indicators -->
+                <div class="trust-bar mt-5 d-flex flex-wrap gap-4">
+                    <div class="trust-item">
+                        <strong class="d-block text-success fs-5">11+</strong>
+                        <small class="text-muted">Indian Languages</small>
+                    </div>
+                    <div class="trust-item">
+                        <strong class="d-block text-success fs-5">RAG</strong>
+                        <small class="text-muted">Knowledge Base</small>
+                    </div>
+                    <div class="trust-item">
+                        <strong class="d-block text-success fs-5">IBM</strong>
+                        <small class="text-muted">Granite AI</small>
+                    </div>
+                    <div class="trust-item">
+                        <strong class="d-block text-success fs-5">Free</strong>
+                        <small class="text-muted">Always</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Chat Preview -->
+            <div class="col-lg-6 mt-5 mt-lg-0" data-aos="fade-left">
+                <div class="hero-chat-preview">
+                    <div class="chat-preview-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="dot dot-green"></div>
+                            <span class="fw-semibold">KrishiMitra AI</span>
+                            <span class="badge bg-success ms-auto">Live</span>
+                        </div>
+                    </div>
+                    <div class="chat-preview-body" id="heroChat">
+                        <div class="chat-bubble bot">
+                            <div class="bubble-avatar">🌾</div>
+                            <div class="bubble-text">
+                                नमस्ते! मैं KrishiMitra हूं। आपकी फसल के बारे में क्या जानना है?
+                                <br><small class="text-muted">(Namaste! I'm KrishiMitra. What would you like to know about your crops?)</small>
+                            </div>
+                        </div>
+                        <div class="chat-bubble user animate__delay-1s">
+                            <div class="bubble-text">मेरे टमाटर की पत्तियों पर भूरे धब्बे हैं</div>
+                            <div class="bubble-avatar">👨‍🌾</div>
+                        </div>
+                        <div class="chat-bubble bot animate__delay-2s">
+                            <div class="bubble-avatar">🌾</div>
+                            <div class="bubble-text">
+                                <strong>🔍 यह Late Blight (अगेती झुलसा) हो सकता है!</strong><br>
+                                <span class="text-muted">Phytophthora infestans के कारण।</span><br>
+                                <span class="text-success">✅ तुरंत Mancozeb 75 WP @ 2.5g/L का छिड़काव करें</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-preview-footer">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Ask anything about farming..." id="heroInput">
+                            <button class="btn btn-success" id="heroSendBtn">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                            <button class="btn btn-outline-success" title="Voice Input" id="heroVoiceBtn">
+                                <i class="bi bi-mic-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FEATURES SECTION ────────────────────────────────────────────────── -->
+<section class="section-features py-5" id="features">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="section-badge">Everything You Need</span>
+            <h2 class="section-title mt-2">Complete Farming Intelligence Platform</h2>
+            <p class="section-subtitle">From seed to sale — AI-powered guidance at every step</p>
+        </div>
+
+        <div class="row g-4">
+            {% set features = [
+                ("bi-bug-fill", "success", "Pest & Disease AI", "Photo-based diagnosis powered by Granite AI. Get instant identification and IPM-based treatment plans.", "Diagnose Now"),
+                ("bi-layers-fill", "warning", "Soil Analysis", "Enter your soil test results and get personalized fertilizer schedules, crop recommendations, and amendment plans.", "Analyze Soil"),
+                ("bi-cloud-lightning-fill", "info", "Weather Advisory", "Real-time forecasts with AI-generated farming advisories — when to spray, irrigate, or harvest.", "Check Weather"),
+                ("bi-graph-up-arrow", "danger", "Live Mandi Prices", "Real-time agmarknet prices from 2500+ mandis across India. Know the best time and market to sell.", "View Prices"),
+                ("bi-award-fill", "primary", "Govt Schemes", "Complete database of PM-KISAN, PMFBY, KCC, and 50+ central & state schemes with eligibility checker.", "Find Schemes"),
+                ("bi-translate", "success", "11 Indian Languages", "Chat in Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Gujarati, Punjabi, Malayalam, Odia, and Urdu.", "Try Languages"),
+                ("bi-mic-fill", "warning", "Voice In & Out", "Speak your question in any language. Hear the advice back. Perfect for low-literacy farmers.", "Try Voice"),
+                ("bi-shield-check-fill", "info", "Safe AI Advice", "Built-in safety rules. Organic alternatives always suggested first. Certified agricultural knowledge.", "Learn More")
+            ] %}
+
+            {% for icon, color, title, desc, cta in features %}
+            <div class="col-sm-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-{{ color }} bg-opacity-10">
+                        <i class="bi {{ icon }} text-{{ color }}"></i>
+                    </div>
+                    <h5 class="feature-title mt-3">{{ title }}</h5>
+                    <p class="feature-desc text-muted small">{{ desc }}</p>
+                    <a href="{{ url_for('auth.register') }}" class="feature-link text-{{ color }}">{{ cta }} →</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── HOW IT WORKS ───────────────────────────────────────────────────── -->
+<section class="section-how py-5 bg-body-tertiary" id="how-it-works">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="section-badge">Simple Process</span>
+            <h2 class="section-title mt-2">How KrishiMitra AI Works</h2>
+        </div>
+        <div class="row g-4 justify-content-center">
+            {% for step, icon, title, desc in [
+                ("1", "bi-person-plus-fill", "Create Free Account", "Register with your mobile number. No email needed. Available in your language."),
+                ("2", "bi-chat-text-fill", "Ask Your Question", "Type or speak your farming problem in any Indian language."),
+                ("3", "bi-database-fill", "AI + Knowledge Base", "IBM Granite AI + RAG retrieves answers from 10,000+ verified agricultural documents."),
+                ("4", "bi-check2-circle", "Get Expert Advice", "Receive personalized, actionable farming advice in seconds, with safety checks built in.")
+            ] %}
+            <div class="col-sm-6 col-lg-3" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                <div class="how-card text-center p-4">
+                    <div class="how-step-num">{{ step }}</div>
+                    <div class="how-icon my-3">
+                        <i class="bi {{ icon }} text-success"></i>
+                    </div>
+                    <h5>{{ title }}</h5>
+                    <p class="text-muted small">{{ desc }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── LANGUAGES SECTION ──────────────────────────────────────────────── -->
+<section class="section-languages py-5" id="languages">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="section-title">Speak Your Language</h2>
+            <p class="text-muted">KrishiMitra understands and responds in all major Indian languages</p>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            {% for flag, lang, native in [
+                ("🇮🇳", "Hindi", "हिंदी"), ("🌟", "Tamil", "தமிழ்"), ("🌟", "Telugu", "తెలుగు"),
+                ("🌟", "Kannada", "ಕನ್ನಡ"), ("🌟", "Bengali", "বাংলা"), ("🌟", "Marathi", "मराठी"),
+                ("🌟", "Gujarati", "ગુજરાતી"), ("🌟", "Punjabi", "ਪੰਜਾਬੀ"), ("🌟", "Malayalam", "മലയാളം"),
+                ("🌟", "Odia", "ଓଡ଼ିଆ"), ("🌟", "English", "English")
+            ] %}
+            <div class="lang-pill">
+                <span>{{ flag }}</span>
+                <div>
+                    <strong class="d-block small">{{ native }}</strong>
+                    <small class="text-muted">{{ lang }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA SECTION ───────────────────────────────────────────────────── -->
+<section class="section-cta py-5 text-center">
+    <div class="container">
+        <div class="cta-box p-5 rounded-4" data-aos="zoom-in">
+            <h2 class="fw-bold mb-3">Start Getting AI Farming Advice Today</h2>
+            <p class="text-muted mb-4">Free forever. No credit card. No app download. Works on any phone.</p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{{ url_for('auth.demo_login') }}" class="btn btn-success btn-lg px-5">
+                    <i class="bi bi-play-circle me-2"></i>Try Demo Now
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-success btn-lg px-5">
+                    <i class="bi bi-person-plus me-2"></i>Create Free Account
+                </a>
+            </div>
+            <div class="mt-4">
+                <a href="tel:1800-180-1551" class="text-decoration-none text-muted small">
+                    <i class="bi bi-telephone me-1"></i>Or call Kisan Call Centre: <strong>1800-180-1551</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer-sk py-4 mt-4">
+    <div class="container text-center">
+        <div class="d-flex flex-wrap justify-content-center gap-3 mb-3">
+            <a href="https://pmkisan.gov.in" target="_blank" class="badge bg-success text-decoration-none p-2">PM-KISAN</a>
+            <a href="https://pmfby.gov.in" target="_blank" class="badge bg-primary text-decoration-none p-2">PMFBY</a>
+            <a href="https://enam.gov.in" target="_blank" class="badge bg-info text-decoration-none p-2">e-NAM</a>
+            <a href="https://mkisan.gov.in" target="_blank" class="badge bg-warning text-dark text-decoration-none p-2">mKisan</a>
+        </div>
+        <p class="text-muted small">© 2024 SmartKrishi | Built with IBM watsonx.ai Granite | For Indian Farmers 🌾</p>
+        <p class="text-muted" style="font-size:11px;">Disclaimer: AI advice is supplementary. Always consult local agricultural experts for critical decisions.</p>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+{% endblock %}

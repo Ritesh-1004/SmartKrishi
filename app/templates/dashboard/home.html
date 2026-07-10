@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="farmer-profile-mini">
+                <div class="farmer-avatar-lg">{{ current_user.full_name[0].upper() }}</div>
+                <div>
+                    <div class="fw-semibold">{{ current_user.full_name }}</div>
+                    <small class="text-muted">{{ current_user.state or 'India' }}</small>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li><a href="{{ url_for('dashboard.home') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.home' }}">
+                    <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+                </a></li>
+                <li><a href="{{ url_for('dashboard.chat') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.chat' }}">
+                    <i class="bi bi-chat-dots"></i> <span>KrishiMitra AI</span>
+                    <span class="badge bg-success ms-auto">AI</span>
+                </a></li>
+                <li><a href="{{ url_for('dashboard.weather') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.weather' }}">
+                    <i class="bi bi-cloud-sun"></i> <span>Weather</span>
+                </a></li>
+                <li><a href="{{ url_for('dashboard.mandi') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.mandi' }}">
+                    <i class="bi bi-graph-up"></i> <span>Mandi Prices</span>
+                </a></li>
+                <li><a href="{{ url_for('dashboard.soil') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.soil' }}">
+                    <i class="bi bi-layers"></i> <span>Soil Analysis</span>
+                </a></li>
+                <li><a href="{{ url_for('dashboard.schemes') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.schemes' }}">
+                    <i class="bi bi-award"></i> <span>Govt Schemes</span>
+                </a></li>
+                <li class="mt-auto border-top pt-2 mt-3">
+                    <a href="{{ url_for('dashboard.profile') }}" class="nav-link sidebar-link {{ 'active' if request.endpoint == 'dashboard.profile' }}">
+                        <i class="bi bi-person-gear"></i> <span>My Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link sidebar-link text-danger">
+                        <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <!-- Sidebar footer -->
+        <div class="sidebar-footer">
+            <div class="helpline-mini">
+                <i class="bi bi-telephone-fill text-success"></i>
+                <div>
+                    <small class="d-block text-muted">Kisan Helpline</small>
+                    <a href="tel:1800-180-1551" class="text-success fw-semibold text-decoration-none small">1800-180-1551</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main Dashboard Content ─────────────────────────────────────── -->
+    <div class="dashboard-main">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-sm btn-outline-secondary sidebar-toggle d-lg-none mb-3" id="sidebarToggle">
+            <i class="bi bi-layout-sidebar"></i>
+        </button>
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner p-4 rounded-3 mb-4">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h4 class="mb-1">🌾 Namaste, {{ current_user.full_name.split()[0] }}!</h4>
+                    <p class="text-muted mb-0">Here's your farming dashboard for today</p>
+                </div>
+                <div class="col-auto">
+                    <div id="currentDateTime" class="text-muted small text-end"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success bg-opacity-10">
+                        <i class="bi bi-chat-dots text-success"></i>
+                    </div>
+                    <div class="stat-value">{{ recent_sessions|length }}</div>
+                    <div class="stat-label">AI Chats</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning bg-opacity-10">
+                        <i class="bi bi-layers text-warning"></i>
+                    </div>
+                    <div class="stat-value">{{ recent_analyses|length }}</div>
+                    <div class="stat-label">Soil Reports</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger bg-opacity-10">
+                        <i class="bi bi-bell text-danger"></i>
+                    </div>
+                    <div class="stat-value">{{ unread_alerts }}</div>
+                    <div class="stat-label">Alerts</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-info bg-opacity-10">
+                        <i class="bi bi-geo-alt text-info"></i>
+                    </div>
+                    <div class="stat-value text-sm">{{ current_user.state or 'Setup' }}</div>
+                    <div class="stat-label">Location</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <h6 class="text-muted fw-semibold mb-3"><i class="bi bi-lightning-fill text-warning me-1"></i>Quick Actions</h6>
+            </div>
+            {% for href, icon, color, title, subtitle in [
+                (url_for('dashboard.chat'), 'bi-chat-dots-fill', 'success', 'Ask KrishiMitra', 'AI farming advice'),
+                (url_for('dashboard.weather'), 'bi-cloud-sun-fill', 'info', 'Check Weather', 'Forecast & advisory'),
+                (url_for('dashboard.mandi'), 'bi-graph-up-arrow', 'warning', 'Mandi Prices', 'Live market rates'),
+                (url_for('dashboard.soil'), 'bi-layers-fill', 'danger', 'Soil Analysis', 'Test interpretation'),
+                (url_for('dashboard.schemes'), 'bi-award-fill', 'primary', 'Govt Schemes', 'Subsidies & benefits'),
+                (url_for('dashboard.profile'), 'bi-person-gear-fill', 'secondary', 'My Profile', 'Farm settings')
+            ] %}
+            <div class="col-6 col-md-4 col-xl-2">
+                <a href="{{ href }}" class="quick-action-card text-decoration-none">
+                    <div class="qa-icon bg-{{ color }} bg-opacity-15">
+                        <i class="bi {{ icon }} text-{{ color }}"></i>
+                    </div>
+                    <div class="qa-title">{{ title }}</div>
+                    <div class="qa-sub">{{ subtitle }}</div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Bottom Row: Recent Chats + Weather Widget -->
+        <div class="row g-3">
+            <!-- Recent Chat Sessions -->
+            <div class="col-lg-7">
+                <div class="card card-sk h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-chat-dots me-2 text-success"></i>Recent AI Conversations</h6>
+                        <a href="{{ url_for('dashboard.chat') }}" class="btn btn-sm btn-success">New Chat</a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if recent_sessions %}
+                        <div class="list-group list-group-flush">
+                            {% for sess in recent_sessions %}
+                            <a href="{{ url_for('dashboard.chat') }}?session={{ sess.id }}" class="list-group-item list-group-item-action border-0">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="session-icon">
+                                        <i class="bi bi-chat-square-text text-success"></i>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-medium text-truncate small">{{ sess.title or 'Chat Session #' + sess.id|string }}</div>
+                                        <small class="text-muted">{{ sess.created_at.strftime('%d %b, %I:%M %p') if sess.created_at else '' }}</small>
+                                    </div>
+                                    <i class="bi bi-chevron-right text-muted"></i>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-chat-dots fs-1 d-block mb-3 opacity-25"></i>
+                            <p class="mb-2">No conversations yet</p>
+                            <a href="{{ url_for('dashboard.chat') }}" class="btn btn-sm btn-success">Start Chatting</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Widget -->
+            <div class="col-lg-5">
+                <div class="card card-sk h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-cloud-sun me-2 text-info"></i>Weather</h6>
+                        <a href="{{ url_for('dashboard.weather') }}" class="btn btn-sm btn-outline-info">Details</a>
+                    </div>
+                    <div class="card-body" id="dashboardWeatherWidget">
+                        <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                            <p class="text-muted small mt-2">Loading weather...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Inline dashboard scripts
+document.addEventListener('DOMContentLoaded', () => {
+    // Update datetime
+    const updateDateTime = () => {
+        const el = document.getElementById('currentDateTime');
+        if (el) {
+            const now = new Date();
+            el.textContent = now.toLocaleDateString('en-IN', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+        }
+    };
+    updateDateTime();
+
+    // Sidebar toggle for mobile
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+        document.getElementById('sidebar')?.classList.toggle('sidebar-open');
+    });
+
+    // Load mini weather widget
+    const userState = "{{ current_user.state or 'Delhi' }}";
+    fetch(`/api/weather?city=${encodeURIComponent(userState)}`)
+        .then(r => r.json())
+        .then(data => {
+            const widget = document.getElementById('dashboardWeatherWidget');
+            const curr = data.current || {};
+            const icon = curr.icon ? `https://openweathermap.org/img/wn/${curr.icon}@2x.png` : '';
+            widget.innerHTML = `
+                <div class="text-center">
+                    ${icon ? `<img src="${icon}" alt="" width="60">` : '<i class="bi bi-cloud-sun fs-1 text-info"></i>'}
+                    <div class="fs-2 fw-bold">${curr.temp || '--'}°C</div>
+                    <div class="text-muted">${curr.description || 'Unknown'}</div>
+                    <div class="small text-muted mt-1">
+                        <i class="bi bi-droplet text-info me-1"></i>${curr.humidity || '--'}% humidity
+                        &nbsp;|&nbsp;
+                        <i class="bi bi-wind text-secondary me-1"></i>${curr.wind_speed || '--'} km/h
+                    </div>
+                    <div class="location-tag mt-2">
+                        <i class="bi bi-geo-alt me-1"></i>${data.city || userState}
+                    </div>
+                </div>
+                ${data.farming_advisory ? `<div class="weather-advisory mt-3 p-2 rounded small">
+                    <i class="bi bi-lightbulb text-warning me-1"></i>${data.farming_advisory}
+                </div>` : ''}
+            `;
+        })
+        .catch(() => {
+            document.getElementById('dashboardWeatherWidget').innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-cloud-slash fs-2 d-block mb-2"></i>
+                    Weather unavailable. <a href="/dashboard/weather">Try weather page</a>
+                </div>`;
+        });
+});
+</script>
+{% endblock %}

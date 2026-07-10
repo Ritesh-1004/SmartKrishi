@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}KrishiMitra AI Chat - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar chat-page{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar (reuse via include) -->
+    {% include 'partials/sidebar.html' %}
+
+    <!-- Chat Interface -->
+    <div class="chat-layout">
+        <!-- Chat Sidebar: Session History -->
+        <div class="chat-sessions-panel" id="chatSessionsPanel">
+            <div class="chat-sessions-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Conversations</h6>
+                <button class="btn btn-sm btn-success" id="newChatBtn">
+                    <i class="bi bi-plus-lg"></i> New
+                </button>
+            </div>
+            <div class="chat-sessions-list" id="sessionsList">
+                {% if sessions %}
+                    {% for sess in sessions %}
+                    <div class="chat-session-item {{ 'active' if loop.first }}" data-session-id="{{ sess.id }}">
+                        <i class="bi bi-chat-text me-2 text-success"></i>
+                        <div class="session-item-text">
+                            <div class="fw-medium small text-truncate">{{ sess.title or 'Chat #' + sess.id|string }}</div>
+                            <small class="text-muted">{{ sess.created_at.strftime('%d %b') if sess.created_at else '' }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4 small">
+                        <i class="bi bi-chat-dots fs-3 d-block mb-2 opacity-25"></i>
+                        No conversations yet
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-main">
+            <!-- Chat Toolbar -->
+            <div class="chat-toolbar">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sessionsToggle">
+                    <i class="bi bi-layout-sidebar"></i>
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="ai-avatar-small">🌾</div>
+                    <div>
+                        <div class="fw-semibold small">KrishiMitra AI</div>
+                        <div class="text-success" style="font-size:11px">
+                            <i class="bi bi-circle-fill me-1" style="font-size:7px"></i>Online
+                        </div>
+                    </div>
+                </div>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <!-- Context Type -->
+                    <select class="form-select form-select-sm w-auto" id="contextType" title="Chat context">
+                        <option value="general">General</option>
+                        <option value="disease">Disease/Pest</option>
+                        <option value="weather">Weather</option>
+                        <option value="scheme">Schemes</option>
+                        <option value="soil">Soil</option>
+                        <option value="market">Market</option>
+                    </select>
+                    <!-- Language override -->
+                    <select class="form-select form-select-sm w-auto" id="chatLangSelect" title="Response language">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="ta">தமிழ்</option>
+                        <option value="te">తెలుగు</option>
+                        <option value="kn">ಕನ್ನಡ</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="mr">मराठी</option>
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="pa">ਪੰਜਾਬੀ</option>
+                    </select>
+                    <!-- TTS toggle -->
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle" id="ttsToggle" title="Toggle voice output">
+                        <i class="bi bi-volume-up"></i>
+                    </button>
+                    <!-- Clear chat -->
+                    <button class="btn btn-sm btn-outline-danger rounded-circle" id="clearChatBtn" title="Clear chat">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="chat-messages-area" id="chatMessages">
+                <!-- Welcome message -->
+                <div class="chat-welcome" id="chatWelcome">
+                    <div class="welcome-avatar">🌾</div>
+                    <h5 class="mt-3">Namaste! I'm KrishiMitra</h5>
+                    <p class="text-muted">Your AI farming advisor powered by IBM Granite AI.<br>Ask me anything about crops, pests, soil, weather, or government schemes.</p>
+                    <!-- Quick prompt suggestions -->
+                    <div class="quick-prompts" id="quickPrompts">
+                        <h6 class="text-muted small mb-3">Try asking:</h6>
+                        <div class="row g-2">
+                            {% for prompt in [
+                                "What crops should I grow this Rabi season?",
+                                "मेरे धान की फसल में भूरे धब्बे हैं, क्या करूं?",
+                                "What is PM-KISAN scheme and how to apply?",
+                                "How to control aphids on mustard crop organically?",
+                                "Soil pH 5.2 है, क्या करना चाहिए?",
+                                "Best time to sell wheat at mandi in Punjab?"
+                            ] %}
+                            <div class="col-md-6">
+                                <button class="quick-prompt-btn" onclick="useQuickPrompt(this)">
+                                    <i class="bi bi-chat-right-text me-2 text-success"></i>{{ prompt }}
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator" style="display:none">
+                <div class="ai-avatar-small">🌾</div>
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <small class="text-muted ms-2">KrishiMitra is thinking...</small>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="chat-input-area">
+                <!-- RAG indicator -->
+                <div class="rag-indicator" id="ragIndicator" style="display:none">
+                    <i class="bi bi-database-fill-check text-success me-1"></i>
+                    <small class="text-muted">Using verified knowledge base</small>
+                </div>
+
+                <div class="chat-input-wrapper">
+                    <div class="input-group chat-input-group">
+                        <textarea
+                            class="form-control chat-input"
+                            id="chatInput"
+                            placeholder="Ask about crops, pests, weather, schemes... (Ctrl+Enter to send)"
+                            rows="1"
+                            maxlength="2000"
+                        ></textarea>
+                        <!-- Voice Input -->
+                        <button class="btn btn-outline-secondary voice-btn" id="voiceInputBtn" title="Voice input (hold to record)">
+                            <i class="bi bi-mic" id="voiceIcon"></i>
+                        </button>
+                        <!-- Send Button -->
+                        <button class="btn btn-success send-btn" id="sendBtn">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1 px-1">
+                        <small class="text-muted">
+                            <span id="charCount">0</span>/2000 &nbsp;|&nbsp;
+                            <i class="bi bi-shield-check text-success me-1"></i>Safe AI
+                        </small>
+                        <small class="text-muted">
+                            <kbd>Ctrl+Enter</kbd> to send &nbsp;|&nbsp;
+                            <i class="bi bi-mic text-secondary me-1"></i>Voice supported
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message action template (copy, speak) -->
+<template id="messageActionsTemplate">
+    <div class="message-actions">
+        <button class="msg-action-btn" title="Copy" onclick="copyMessage(this)"><i class="bi bi-clipboard"></i></button>
+        <button class="msg-action-btn" title="Speak" onclick="speakMessage(this)"><i class="bi bi-volume-up"></i></button>
+        <button class="msg-action-btn" title="Share" onclick="shareMessage(this)"><i class="bi bi-share"></i></button>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CURRENT_USER_LANGUAGE = "{{ current_user.preferred_language or 'en' }}";
+    const INITIAL_SESSION_ID = {{ request.args.get('session', 'null') }};
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

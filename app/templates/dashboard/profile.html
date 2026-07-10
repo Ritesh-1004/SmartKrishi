@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}My Profile - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <div class="dashboard-main">
+        <div class="mb-4">
+            <h4 class="mb-1"><i class="bi bi-person-gear text-secondary me-2"></i>Farmer Profile</h4>
+            <p class="text-muted small mb-0">Keep your profile updated for better personalized recommendations</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card card-sk p-4 text-center">
+                    <div class="farmer-avatar-xl mx-auto mb-3">{{ current_user.full_name[0].upper() }}</div>
+                    <h5>{{ current_user.full_name }}</h5>
+                    <p class="text-muted small">@{{ current_user.username }}</p>
+                    {% if current_user.state %}
+                    <div class="mb-2"><i class="bi bi-geo-alt me-1 text-info"></i>{{ current_user.district or '' }}{% if current_user.district %}, {% endif %}{{ current_user.state }}</div>
+                    {% endif %}
+                    {% if current_user.farm_size %}
+                    <div class="mb-2"><i class="bi bi-rulers me-1 text-warning"></i>{{ current_user.farm_size }} acres</div>
+                    {% endif %}
+                    {% if current_user.crops %}
+                    <div class="d-flex flex-wrap gap-1 justify-content-center mt-2">
+                        {% for crop in current_user.crops %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">{{ crop }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card card-sk p-4">
+                    <h6 class="mb-4">Edit Profile</h6>
+                    <form id="profileForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Full Name</label>
+                                <input type="text" class="form-control form-control-sm" name="full_name" value="{{ current_user.full_name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">State</label>
+                                <input type="text" class="form-control form-control-sm" name="state" value="{{ current_user.state or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">District</label>
+                                <input type="text" class="form-control form-control-sm" name="district" value="{{ current_user.district or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Village</label>
+                                <input type="text" class="form-control form-control-sm" name="village" value="{{ current_user.village or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Farm Size (acres)</label>
+                                <input type="number" step="0.1" class="form-control form-control-sm" name="farm_size" value="{{ current_user.farm_size or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Soil Type</label>
+                                <select class="form-select form-select-sm" name="soil_type">
+                                    {% for soil in ['Loamy', 'Sandy', 'Clay', 'Silty', 'Sandy Loam', 'Clay Loam', 'Black Cotton', 'Red Laterite', 'Alluvial'] %}
+                                    <option value="{{ soil }}" {{ 'selected' if current_user.soil_type == soil }}>{{ soil }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Irrigation Type</label>
+                                <select class="form-select form-select-sm" name="irrigation_type">
+                                    {% for irr in ['Canal', 'Borewell', 'Drip', 'Sprinkler', 'Rainfed', 'Pond/Tank', 'River'] %}
+                                    <option value="{{ irr }}" {{ 'selected' if current_user.irrigation_type == irr }}>{{ irr }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Primary Crops (comma-separated)</label>
+                                <input type="text" class="form-control form-control-sm" id="cropsInput" value="{{ current_user.crops | join(', ') if current_user.crops else '' }}" placeholder="e.g. Wheat, Rice, Tomato">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Preferred Language</label>
+                                <select class="form-select form-select-sm" name="preferred_language">
+                                    <option value="en" {{ 'selected' if current_user.preferred_language == 'en' }}>English</option>
+                                    <option value="hi" {{ 'selected' if current_user.preferred_language == 'hi' }}>हिंदी (Hindi)</option>
+                                    <option value="ta" {{ 'selected' if current_user.preferred_language == 'ta' }}>தமிழ் (Tamil)</option>
+                                    <option value="te" {{ 'selected' if current_user.preferred_language == 'te' }}>తెలుగు (Telugu)</option>
+                                    <option value="kn" {{ 'selected' if current_user.preferred_language == 'kn' }}>ಕನ್ನಡ (Kannada)</option>
+                                    <option value="bn" {{ 'selected' if current_user.preferred_language == 'bn' }}>বাংলা (Bengali)</option>
+                                    <option value="mr" {{ 'selected' if current_user.preferred_language == 'mr' }}>मराठी (Marathi)</option>
+                                    <option value="gu" {{ 'selected' if current_user.preferred_language == 'gu' }}>ગુજરાતી (Gujarati)</option>
+                                    <option value="pa" {{ 'selected' if current_user.preferred_language == 'pa' }}>ਪੰਜਾਬੀ (Punjabi)</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" name="voice_enabled" id="voiceToggle" {{ 'checked' if current_user.voice_enabled }}>
+                                    <label class="form-check-label small" for="voiceToggle">Enable voice output for AI responses</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check2-circle me-2"></i>Save Profile
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.farmer-avatar-xl {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sk-green), var(--sk-green-light));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const payload = Object.fromEntries(formData.entries());
+
+    // Parse crops
+    const cropsRaw = document.getElementById('cropsInput').value;
+    payload.crops = cropsRaw.split(',').map(c => c.trim()).filter(Boolean);
+
+    // Handle checkbox
+    payload.voice_enabled = formData.get('voice_enabled') === 'on';
+
+    try {
+        const res = await fetch('/api/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Profile updated successfully!', 'success');
+        } else {
+            showToast('Error: ' + (data.error || 'Update failed'), 'danger');
+        }
+    } catch (e) {
+        showToast('Failed to update profile. Please try again.', 'danger');
+    }
+});
+</script>
+{% endblock %}

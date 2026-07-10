@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Mandi Prices - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <div class="dashboard-main">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+            <div>
+                <h4 class="mb-1"><i class="bi bi-graph-up-arrow text-warning me-2"></i>Live Mandi Prices</h4>
+                <p class="text-muted small mb-0">Real-time wholesale crop prices from agmarknet.nic.in</p>
+            </div>
+        </div>
+
+        <!-- Search Filters -->
+        <div class="card card-sk p-3 mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-sm-4">
+                    <label class="form-label small fw-medium">Commodity</label>
+                    <select class="form-select form-select-sm" id="commoditySelect">
+                        <option value="Wheat">Wheat (गेहूं)</option>
+                        <option value="Rice">Rice (चावल)</option>
+                        <option value="Maize">Maize (मक्का)</option>
+                        <option value="Cotton">Cotton (कपास)</option>
+                        <option value="Soyabean">Soyabean (सोयाबीन)</option>
+                        <option value="Onion">Onion (प्याज)</option>
+                        <option value="Potato">Potato (आलू)</option>
+                        <option value="Tomato">Tomato (टमाटर)</option>
+                        <option value="Mustard">Mustard (सरसों)</option>
+                        <option value="Gram">Gram/Chickpea (चना)</option>
+                        <option value="Sugarcane">Sugarcane (गन्ना)</option>
+                        <option value="Groundnut">Groundnut (मूंगफली)</option>
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label small fw-medium">State</label>
+                    <input type="text" class="form-control form-control-sm" id="stateInput" placeholder="e.g. Punjab" value="{{ current_user.state or '' }}">
+                </div>
+                <div class="col-sm-auto">
+                    <button class="btn btn-sm btn-warning text-dark" id="searchMandiBtn">
+                        <i class="bi bi-search me-1"></i>Search Prices
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Results -->
+        <div id="mandiResults">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-graph-up fs-1 d-block mb-3 opacity-25"></i>
+                <p>Select a commodity and click Search to see live prices</p>
+            </div>
+        </div>
+
+        <!-- MSP Reference Table -->
+        <div class="card card-sk mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2 text-info"></i>MSP Reference 2024-25 (₹/Quintal)</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 small">
+                    <thead><tr><th>Crop</th><th>MSP (₹/Qtl)</th><th>Season</th></tr></thead>
+                    <tbody>
+                        {% for crop, msp, season in [
+                            ('Paddy (Common)', '2300', 'Kharif 2024'),
+                            ('Wheat', '2275', 'Rabi 2024-25'),
+                            ('Maize', '2090', 'Kharif 2024'),
+                            ('Cotton (Medium)', '7121', 'Kharif 2024'),
+                            ('Soyabean', '4892', 'Kharif 2024'),
+                            ('Mustard', '5950', 'Rabi 2024-25'),
+                            ('Gram (Chickpea)', '5440', 'Rabi 2024-25'),
+                            ('Groundnut', '6783', 'Kharif 2024'),
+                            ('Sugarcane', '340', 'SY 2024-25'),
+                            ('Tur (Arhar)', '7550', 'Kharif 2024')
+                        ] %}
+                        <tr>
+                            <td class="fw-medium">{{ crop }}</td>
+                            <td class="text-success fw-bold">₹{{ msp }}</td>
+                            <td class="text-muted">{{ season }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchMandiBtn').addEventListener('click', searchMandi);
+document.getElementById('commoditySelect').addEventListener('change', searchMandi);
+
+// Auto-load on page open
+searchMandi();
+
+function searchMandi() {
+    const commodity = document.getElementById('commoditySelect').value;
+    const state = document.getElementById('stateInput').value.trim();
+    const results = document.getElementById('mandiResults');
+
+    results.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-warning"></div><p class="text-muted mt-2">Fetching prices...</p></div>`;
+
+    fetch(`/api/mandi-prices?commodity=${encodeURIComponent(commodity)}&state=${encodeURIComponent(state)}`)
+        .then(r => r.json())
+        .then(data => renderMandiPrices(data, commodity, results))
+        .catch(() => {
+            results.innerHTML = `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Price data temporarily unavailable. Try again later.</div>`;
+        });
+}
+
+function renderMandiPrices(data, commodity, container) {
+    const prices = data.prices || [];
+
+    if (!prices.length) {
+        container.innerHTML = `<div class="text-center py-5 text-muted"><i class="bi bi-search fs-1 d-block mb-3 opacity-25"></i>No prices found for "${commodity}". Try another commodity or state.</div>`;
+        return;
+    }
+
+    const maxPrice = Math.max(...prices.map(p => p.modal_price || 0));
+    const minPrice = Math.min(...prices.map(p => p.modal_price || 0));
+    const avgPrice = Math.round(prices.reduce((s, p) => s + (p.modal_price || 0), 0) / prices.length);
+
+    container.innerHTML = `
+        <!-- Summary Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-arrow-up-circle text-success"></i></div>
+                    <div class="stat-value text-success">₹${maxPrice.toLocaleString('en-IN')}</div>
+                    <div class="stat-label">Highest Price / Qtl</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-dash-circle text-warning"></i></div>
+                    <div class="stat-value text-warning">₹${avgPrice.toLocaleString('en-IN')}</div>
+                    <div class="stat-label">Average Price / Qtl</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger bg-opacity-10"><i class="bi bi-arrow-down-circle text-danger"></i></div>
+                    <div class="stat-value text-danger">₹${minPrice.toLocaleString('en-IN')}</div>
+                    <div class="stat-label">Lowest Price / Qtl</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Table -->
+        <div class="card card-sk">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-table me-2"></i>${commodity} Prices ${data.source === 'cache' ? '(Cached)' : '(Live)'}
+                    ${data.source === 'api' ? '' : '<span class="badge bg-secondary ms-2" style="font-size:0.65rem">Demo Data</span>'}
+                </h6>
+                <small class="text-muted">${prices.length} markets found</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 small">
+                    <thead>
+                        <tr>
+                            <th>Market</th>
+                            <th>State</th>
+                            <th>Min ₹/Qtl</th>
+                            <th>Modal ₹/Qtl</th>
+                            <th>Max ₹/Qtl</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${prices.map(p => `
+                        <tr>
+                            <td class="fw-medium">${p.market || 'N/A'}</td>
+                            <td class="text-muted">${p.state || 'N/A'}</td>
+                            <td>₹${(p.min_price || 0).toLocaleString('en-IN')}</td>
+                            <td class="fw-bold text-success">₹${(p.modal_price || 0).toLocaleString('en-IN')}</td>
+                            <td>₹${(p.max_price || 0).toLocaleString('en-IN')}</td>
+                            <td class="text-muted">${p.arrival_date || 'N/A'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <p class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>Source: Agmarknet (data.gov.in). Prices in ₹ per Quintal (100 kg).</p>
+    `;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Weather Forecast - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <div class="dashboard-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1"><i class="bi bi-cloud-sun-fill text-info me-2"></i>Weather & Farming Advisory</h4>
+                <p class="text-muted small mb-0">Real-time forecasts with AI-powered farming guidance</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <input type="text" class="form-control form-control-sm" id="cityInput" placeholder="Enter city name" value="{{ current_user.district or current_user.state or 'Delhi' }}" style="max-width:180px">
+                <button class="btn btn-sm btn-info text-white" id="searchWeatherBtn">
+                    <i class="bi bi-search me-1"></i>Search
+                </button>
+                <button class="btn btn-sm btn-outline-info" id="locationBtn" title="Use my location">
+                    <i class="bi bi-geo-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Current Weather Card -->
+        <div id="weatherContent">
+            <div class="text-center py-5">
+                <div class="spinner-border text-info" role="status"></div>
+                <p class="text-muted mt-2">Loading weather data...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const userCity = "{{ current_user.district or current_user.state or 'Delhi' }}";
+    loadWeather(null, null, userCity);
+
+    document.getElementById('searchWeatherBtn').addEventListener('click', () => {
+        const city = document.getElementById('cityInput').value.trim();
+        if (city) loadWeather(null, null, city);
+    });
+
+    document.getElementById('cityInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('searchWeatherBtn').click();
+    });
+
+    document.getElementById('locationBtn').addEventListener('click', () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => loadWeather(pos.coords.latitude, pos.coords.longitude),
+                () => showToast('Location access denied. Enter city manually.', 'warning')
+            );
+        }
+    });
+});
+
+function loadWeather(lat, lon, city) {
+    const content = document.getElementById('weatherContent');
+    content.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-info"></div><p class="text-muted mt-2">Fetching weather...</p></div>`;
+
+    let url = '/api/weather';
+    if (lat && lon) url += `?lat=${lat}&lon=${lon}`;
+    else if (city) url += `?city=${encodeURIComponent(city)}`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => renderWeather(data, content))
+        .catch(() => {
+            content.innerHTML = `<div class="text-center text-danger py-5"><i class="bi bi-cloud-slash fs-1 d-block mb-2"></i>Weather data unavailable</div>`;
+        });
+}
+
+function renderWeather(data, container) {
+    const curr = data.current || {};
+    const iconUrl = curr.icon ? `https://openweathermap.org/img/wn/${curr.icon}@2x.png` : '';
+    const forecast = data.forecast || [];
+
+    const getWeatherColor = (desc) => {
+        const d = (desc || '').toLowerCase();
+        if (d.includes('rain') || d.includes('thunder')) return 'info';
+        if (d.includes('cloud')) return 'secondary';
+        if (d.includes('sun') || d.includes('clear')) return 'warning';
+        return 'primary';
+    };
+
+    let forecastHTML = forecast.map(day => `
+        <div class="col">
+            <div class="forecast-day text-center p-3 rounded-3 border">
+                <div class="fw-semibold small">${new Date(day.date).toLocaleDateString('en-IN', {weekday:'short', month:'short', day:'numeric'})}</div>
+                ${day.icon ? `<img src="https://openweathermap.org/img/wn/${day.icon}.png" alt="${day.description}" width="40">` : `<i class="bi bi-cloud fs-3 d-block my-1"></i>`}
+                <div class="small text-muted">${day.description}</div>
+                <div class="fw-bold">${day.temp_max}° / <span class="text-muted">${day.temp_min}°</span></div>
+                ${day.rain > 0 ? `<div class="text-info small"><i class="bi bi-droplet me-1"></i>${day.rain}mm</div>` : ''}
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = `
+        <div class="row g-3 mb-4">
+            <div class="col-md-5">
+                <div class="card card-sk p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        ${iconUrl ? `<img src="${iconUrl}" alt="" width="70">` : '<i class="bi bi-sun fs-1 text-warning"></i>'}
+                        <div>
+                            <div class="display-4 fw-bold">${curr.temp || '--'}°C</div>
+                            <div class="text-muted">${curr.description || 'Unknown'}</div>
+                            <div class="small text-muted mt-1">
+                                <i class="bi bi-geo-alt me-1 text-info"></i><strong>${data.city || 'Unknown'}</strong>, ${data.country || 'IN'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="p-2 rounded-2 bg-body-tertiary">
+                                <i class="bi bi-droplet text-info d-block"></i>
+                                <strong>${curr.humidity || '--'}%</strong>
+                                <div class="text-muted" style="font-size:0.7rem">Humidity</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 rounded-2 bg-body-tertiary">
+                                <i class="bi bi-wind text-secondary d-block"></i>
+                                <strong>${curr.wind_speed || '--'} km/h</strong>
+                                <div class="text-muted" style="font-size:0.7rem">Wind</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 rounded-2 bg-body-tertiary">
+                                <i class="bi bi-thermometer-half text-danger d-block"></i>
+                                <strong>${curr.feels_like || curr.temp || '--'}°</strong>
+                                <div class="text-muted" style="font-size:0.7rem">Feels Like</div>
+                            </div>
+                        </div>
+                    </div>
+                    ${data.is_demo ? '<div class="alert alert-warning p-2 small mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Demo data. Add <code>WEATHER_API_KEY</code> for live data.</div>' : ''}
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="card card-sk p-4 h-100">
+                    <h6 class="mb-3"><i class="bi bi-lightbulb-fill text-warning me-2"></i>AI Farming Advisory</h6>
+                    <div class="alert alert-success p-3 mb-0">
+                        <p class="mb-0 small" style="line-height:1.7">${data.farming_advisory || 'Weather conditions look favorable for farming operations.'}</p>
+                    </div>
+                    <div class="mt-3">
+                        <h6 class="small fw-semibold text-muted mb-2">QUICK ADVISORY TIPS</h6>
+                        <div id="advisoryTips"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7-Day Forecast -->
+        <div class="card card-sk p-3">
+            <h6 class="mb-3"><i class="bi bi-calendar-week me-2 text-info"></i>7-Day Forecast</h6>
+            <div class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-2">
+                ${forecastHTML}
+            </div>
+        </div>
+    `;
+
+    // Generate advisory tips based on weather
+    const tips = generateFarmingTips(curr, data.forecast);
+    const tipsContainer = document.getElementById('advisoryTips');
+    if (tipsContainer && tips.length) {
+        tipsContainer.innerHTML = tips.map(tip =>
+            `<div class="d-flex gap-2 mb-2 small"><i class="bi bi-check2-circle text-success mt-1 flex-shrink-0"></i><span>${tip}</span></div>`
+        ).join('');
+    }
+}
+
+function generateFarmingTips(curr, forecast) {
+    const tips = [];
+    const rain = forecast ? forecast.slice(0, 3).reduce((s, d) => s + (d.rain || 0), 0) : 0;
+    const temp = curr.temp || 25;
+    const humidity = curr.humidity || 60;
+
+    if (rain > 15) tips.push('Heavy rain expected — delay any planned fertilizer or pesticide spraying');
+    if (rain > 3 && rain <= 15) tips.push('Light rain expected — good for germination. Check field drainage.');
+    if (humidity > 80) tips.push('High humidity — monitor for fungal diseases. Apply preventive copper/mancozeb spray.');
+    if (temp > 38) tips.push('Heat stress conditions — irrigate in early morning (6-8 AM) to reduce evaporation.');
+    if (temp < 15) tips.push('Cool temperatures — favorable for Rabi crops. Watch for powdery mildew on wheat/mustard.');
+    if (rain < 2 && temp > 30) tips.push('Dry and warm — ensure adequate irrigation. Check soil moisture every 2-3 days.');
+    if (tips.length === 0) tips.push('Normal weather conditions — good for routine farming activities.');
+    return tips.slice(0, 4);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Login - SmartKrishi{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <a href="{{ url_for('main.index') }}" class="text-decoration-none">
+                <i class="bi bi-tree-fill text-success fs-1"></i>
+                <h3 class="mt-2 text-success fw-bold">SmartKrishi</h3>
+            </a>
+            <p class="text-muted small">AI Farming Advisor for Indian Farmers</p>
+        </div>
+
+        <h5 class="text-center mb-4">Welcome Back! 🌾</h5>
+
+        <form method="POST" id="loginForm">
+            <div class="mb-3">
+                <label class="form-label fw-medium">Username / Phone / Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" name="identifier" class="form-control" placeholder="Enter username, phone, or email" required autofocus>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-medium">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                    <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('loginPassword')">
+                        <i class="bi bi-eye" id="loginPasswordIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check mb-0">
+                    <input type="checkbox" class="form-check-input" name="remember" id="remember">
+                    <label class="form-check-label small" for="remember">Remember me</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success w-100 btn-lg">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
+        </form>
+
+        <div class="divider my-4">
+            <span>or</span>
+        </div>
+
+        <!-- Demo Login -->
+        <form method="POST" action="{{ url_for('auth.demo_login') }}">
+            <button type="submit" class="btn btn-outline-success w-100">
+                <i class="bi bi-play-circle me-2"></i>Try Demo (No account needed)
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="text-muted small">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-success fw-semibold">Register Free</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePasswordVisibility(id) {
+    const field = document.getElementById(id);
+    const icon = document.getElementById(id + 'Icon');
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        field.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
+{% endblock %}

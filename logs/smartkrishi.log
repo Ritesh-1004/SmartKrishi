@@ -1,0 +1,9 @@
+[2026-07-06 20:40:42] ERROR app.services.watsonx_service: watsonx generation error: Failure during generate. (POST https://au-syd.ml.cloud.ibm.com/ml/v1/text/generation?version=2026-06-10)
+Status code: 400, body: {"errors":[{"code":"model_no_support_for_function","message":"Model 'ibm/granite-3-1-8b-base' does not support function 'function_text_generation'","more_info":"https://cloud.ibm.com/apidocs/watsonx-ai#text-generation"}],"trace":"da50e27174bba2559b2f130efa0d08d7","status_code":400}
+[2026-07-06 20:45:46] ERROR app.services.watsonx_service: watsonx generation error: Failure during generate. (POST https://au-syd.ml.cloud.ibm.com/ml/v1/text/generation?version=2026-06-10)
+Status code: 400, body: {"errors":[{"code":"model_no_support_for_function","message":"Model 'meta-llama/llama-3-1-8b' does not support function 'function_text_generation'","more_info":"https://cloud.ibm.com/apidocs/watsonx-ai#text-generation"}],"trace":"40599cb67afbe3053b49b05e9b8217e3","status_code":400}
+[2026-07-06 20:50:40] ERROR app.routes.api: Mandi API error: HTTPSConnectionPool(host='api.data.gov.in', port=443): Read timed out. (read timeout=15)
+[2026-07-06 21:00:46] ERROR app.routes.api: Mandi API error: HTTPSConnectionPool(host='api.data.gov.in', port=443): Read timed out. (read timeout=15)
+[2026-07-06 21:01:07] ERROR app.routes.api: Mandi API error: HTTPSConnectionPool(host='api.data.gov.in', port=443): Read timed out. (read timeout=15)
+[2026-07-06 21:01:38] ERROR app.routes.api: Mandi API error: HTTPSConnectionPool(host='api.data.gov.in', port=443): Read timed out. (read timeout=15)
+[2026-07-10 16:17:10] ERROR app.routes.api: Mandi API error: HTTPSConnectionPool(host='api.data.gov.in', port=443): Read timed out. (read timeout=15)

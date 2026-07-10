@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Government Schemes - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <div class="dashboard-main">
+        <div class="mb-4">
+            <h4 class="mb-1"><i class="bi bi-award-fill text-primary me-2"></i>Government Agricultural Schemes</h4>
+            <p class="text-muted small mb-0">AI-powered scheme finder — know your benefits and how to apply</p>
+        </div>
+
+        <!-- Scheme Filter -->
+        <div class="card card-sk p-3 mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-sm-3">
+                    <label class="form-label small fw-medium">Farmer Category</label>
+                    <select class="form-select form-select-sm" id="farmerCategory">
+                        <option value="small farmer">Small/Marginal Farmer</option>
+                        <option value="large farmer">Large Farmer</option>
+                        <option value="women farmer">Women Farmer</option>
+                        <option value="tribal farmer">Tribal/ST Farmer</option>
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label small fw-medium">What do you need?</label>
+                    <select class="form-select form-select-sm" id="schemNeed">
+                        <option value="income support">Income Support</option>
+                        <option value="crop insurance">Crop Insurance</option>
+                        <option value="credit loan">Credit/Loans</option>
+                        <option value="subsidy">Equipment Subsidy</option>
+                        <option value="irrigation">Irrigation Support</option>
+                        <option value="organic certification">Organic Farming</option>
+                        <option value="market access">Market Access</option>
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label small fw-medium">State</label>
+                    <input type="text" class="form-control form-control-sm" id="schemeState" placeholder="e.g. Maharashtra" value="{{ current_user.state or '' }}">
+                </div>
+                <div class="col-sm-auto">
+                    <button class="btn btn-sm btn-primary" id="findSchemesBtn">
+                        <i class="bi bi-search me-1"></i>Find Schemes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Scheme Cards -->
+        <div class="row g-3 mb-4">
+            {% for icon, color, name, desc, link in [
+                ('bi-currency-rupee', 'success', 'PM-KISAN', '₹6,000/year direct benefit transfer to farmer families', 'https://pmkisan.gov.in'),
+                ('bi-shield-check', 'info', 'PM Fasal Bima', 'Crop insurance @ 2% premium (Kharif) & 1.5% (Rabi)', 'https://pmfby.gov.in'),
+                ('bi-bank', 'warning', 'Kisan Credit Card', 'Low-interest credit @4% for crop & allied activities', 'https://www.nabard.org'),
+                ('bi-droplet', 'primary', 'PM Krishi Sinchayee', 'Irrigation subsidy upto 55% for drip/sprinkler systems', 'https://pmksy.gov.in'),
+            ] %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="card card-sk p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="stat-icon bg-{{ color }} bg-opacity-10">
+                            <i class="bi {{ icon }} text-{{ color }}"></i>
+                        </div>
+                        <h6 class="mb-0 small fw-bold">{{ name }}</h6>
+                    </div>
+                    <p class="text-muted small mb-3">{{ desc }}</p>
+                    <a href="{{ link }}" target="_blank" class="btn btn-sm btn-{{ color }} mt-auto">
+                        Apply Now <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- AI Scheme Finder Results -->
+        <div id="schemeResults">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-award fs-1 d-block mb-3 opacity-25"></i>
+                <p>Select your category and needs, then click Find Schemes for personalized guidance</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('findSchemesBtn').addEventListener('click', findSchemes);
+
+function findSchemes() {
+    const category = document.getElementById('farmerCategory').value;
+    const need = document.getElementById('schemNeed').value;
+    const state = document.getElementById('schemeState').value.trim();
+    const results = document.getElementById('schemeResults');
+
+    results.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="text-muted mt-2">Finding relevant government schemes with AI...</p></div>`;
+
+    fetch(`/api/schemes?category=${encodeURIComponent(category)}&need=${encodeURIComponent(need)}&state=${encodeURIComponent(state)}`)
+        .then(r => r.json())
+        .then(data => {
+            results.innerHTML = `
+                <div class="card card-sk p-4">
+                    <h6 class="mb-3"><i class="bi bi-robot text-primary me-2"></i>AI-Curated Scheme Information</h6>
+                    <div style="line-height:1.8;font-size:0.875rem">
+                        ${renderMarkdown(data.information || 'No schemes found for your criteria.')}
+                    </div>
+                    <div class="mt-4 p-3 rounded-3 bg-body-tertiary small">
+                        <strong><i class="bi bi-info-circle me-2 text-info"></i>Important:</strong>
+                        Always verify scheme details and eligibility at your nearest Common Service Centre (CSC) or agriculture office.
+                        Helpline: <a href="tel:1800-180-1551" class="text-success fw-bold">1800-180-1551</a>
+                    </div>
+                </div>`;
+        })
+        .catch(() => {
+            results.innerHTML = `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Could not load scheme information. Please try again.</div>`;
+        });
+}
+</script>
+{% endblock %}

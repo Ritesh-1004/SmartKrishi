@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Soil Analysis - SmartKrishi{% endblock %}
+{% block body_class %}has-sidebar{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    {% include 'partials/sidebar.html' %}
+    <div class="dashboard-main">
+        <div class="mb-4">
+            <h4 class="mb-1"><i class="bi bi-layers-fill text-warning me-2"></i>Soil Health Analysis</h4>
+            <p class="text-muted small mb-0">Enter your soil test report values for AI-powered fertilizer recommendations</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Soil Input Form -->
+            <div class="col-lg-5">
+                <div class="card card-sk p-4">
+                    <h6 class="mb-4"><i class="bi bi-clipboard-data me-2 text-warning"></i>Enter Soil Test Values</h6>
+                    <form id="soilForm">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">pH Value</label>
+                                <input type="number" step="0.1" min="0" max="14" class="form-control form-control-sm" name="ph" placeholder="e.g. 6.5">
+                                <small class="text-muted">Optimal: 6.0-7.5</small>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Organic Carbon (%)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="organic_carbon" placeholder="e.g. 0.75">
+                                <small class="text-muted">Good: >0.75%</small>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Nitrogen (kg/ha)</label>
+                                <input type="number" class="form-control form-control-sm" name="nitrogen" placeholder="e.g. 220">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Phosphorus (kg/ha)</label>
+                                <input type="number" class="form-control form-control-sm" name="phosphorus" placeholder="e.g. 18">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Potassium (kg/ha)</label>
+                                <input type="number" class="form-control form-control-sm" name="potassium" placeholder="e.g. 150">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Sulphur (ppm)</label>
+                                <input type="number" class="form-control form-control-sm" name="sulphur" placeholder="e.g. 15">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Zinc (ppm)</label>
+                                <input type="number" step="0.1" class="form-control form-control-sm" name="zinc" placeholder="e.g. 1.2">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-medium">Intended Crop</label>
+                                <select class="form-select form-select-sm" name="crop">
+                                    <option value="Rice">Rice</option>
+                                    <option value="Wheat">Wheat</option>
+                                    <option value="Maize">Maize</option>
+                                    <option value="Cotton">Cotton</option>
+                                    <option value="Sugarcane">Sugarcane</option>
+                                    <option value="Tomato">Tomato</option>
+                                    <option value="Potato">Potato</option>
+                                    <option value="Soyabean">Soyabean</option>
+                                    <option value="Mustard">Mustard</option>
+                                    <option value="Chickpea">Chickpea</option>
+                                    <option value="Groundnut">Groundnut</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-warning text-dark w-100">
+                                    <i class="bi bi-robot me-2"></i>Get AI Recommendations
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Soil Health Card Info -->
+                <div class="alert alert-info mt-3 small">
+                    <strong><i class="bi bi-info-circle me-2"></i>Soil Health Card (SHC)</strong><br>
+                    Get FREE soil testing at your nearest Agriculture Department or Krishi Vigyan Kendra.
+                    Soil Health Card tests 12 parameters. Portal: <a href="https://soilhealth.dac.gov.in" target="_blank">soilhealth.dac.gov.in</a>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="col-lg-7">
+                <div id="soilResults">
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-layers fs-1 d-block mb-3 opacity-25"></i>
+                        <p>Enter soil test values and click Analyze to get AI recommendations</p>
+                    </div>
+                </div>
+
+                <!-- Previous Analyses -->
+                {% if analyses %}
+                <div class="card card-sk mt-4">
+                    <div class="card-header"><h6 class="mb-0">Previous Soil Reports</h6></div>
+                    <div class="list-group list-group-flush">
+                        {% for analysis in analyses[:5] %}
+                        <div class="list-group-item border-0 small">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-medium">{{ analysis.test_date or analysis.created_at.strftime('%d %b %Y') }}</span>
+                                {% if analysis.ph %}<span class="badge bg-secondary">pH {{ analysis.ph }}</span>{% endif %}
+                            </div>
+                            {% if analysis.ai_recommendations %}
+                            <div class="text-muted mt-1 text-truncate" style="max-width:350px">{{ analysis.ai_recommendations[:100] }}...</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('soilForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const results = document.getElementById('soilResults');
+    const formData = new FormData(e.target);
+    const payload = Object.fromEntries(formData.entries());
+
+    results.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div><p class="text-muted mt-2">Analyzing soil data with AI...</p></div>`;
+
+    try {
+        const res = await fetch('/api/soil-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        const defList = (data.deficiencies || []).map(d =>
+            `<div class="d-flex gap-2 align-items-center mb-2">
+                <span class="badge bg-${d.severity === 'high' ? 'danger' : 'warning'} text-${d.severity === 'high' ? 'white' : 'dark'}">${d.severity.toUpperCase()}</span>
+                <span class="small">${d.nutrient}: <strong>${d.status}</strong></span>
+            </div>`
+        ).join('');
+
+        const scoreColor = data.soil_health_score >= 70 ? 'success' : (data.soil_health_score >= 50 ? 'warning' : 'danger');
+
+        results.innerHTML = `
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <div class="card card-sk p-3 text-center">
+                        <div class="fs-1 fw-bold text-${scoreColor}">${data.soil_health_score || '--'}</div>
+                        <div class="small text-muted">Soil Health Score / 100</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card card-sk p-3">
+                        <h6 class="small fw-semibold text-muted mb-2">DEFICIENCIES DETECTED</h6>
+                        ${defList || '<div class="text-success small"><i class="bi bi-check-circle me-1"></i>No major deficiencies detected</div>'}
+                    </div>
+                </div>
+            </div>
+            <div class="card card-sk p-4">
+                <h6 class="mb-3"><i class="bi bi-robot text-warning me-2"></i>AI Fertilizer Recommendations</h6>
+                <div class="soil-recommendations" style="line-height:1.8;font-size:0.875rem">
+                    ${renderMarkdown(data.recommendations || 'No recommendations available.')}
+                </div>
+            </div>
+        `;
+
+    } catch (err) {
+        results.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-circle me-2"></i>Error analyzing soil data. Please try again.</div>`;
+    }
+});
+</script>
+{% endblock %}
