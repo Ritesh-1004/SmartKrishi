@@ -117,25 +117,6 @@ Edit [`app/agent_instructions.py`](app/agent_instructions.py) to change:
 | `AGENT_RAG_INSTRUCTIONS` | How it uses the knowledge base |
 | `AGENT_CRISIS_RESPONSE` | How it handles distress situations |
 | `PROMPT_TEMPLATES` | Pre-built prompts for specific use cases |
-
----
-
-## 🌐 Supported Languages
-
-| Code | Language | Native Script |
-|------|----------|---------------|
-| `en` | English | English |
-| `hi` | Hindi | हिंदी |
-| `ta` | Tamil | தமிழ் |
-| `te` | Telugu | తెలుగు |
-| `kn` | Kannada | ಕನ್ನಡ |
-| `bn` | Bengali | বাংলা |
-| `mr` | Marathi | मराठी |
-| `gu` | Gujarati | ગુજરાતી |
-| `pa` | Punjabi | ਪੰਜਾਬੀ |
-| `ml` | Malayalam | മലയാളം |
-| `or` | Odia | ଓଡ଼ିଆ |
-
 ---
 
 ## 📡 API Endpoints
